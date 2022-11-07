@@ -49,6 +49,8 @@ QUERY_FILES = [QUERIES_DEV, QUERIES_TRAIN, QUERIES_EVAL]
 # Evaluation scores
 RELEVANCE_SCORES = "../data/2019qrels-pass.txt"
 
+#%% INDEXING
+
 def bulk_index(es: Elasticsearch) -> None:
     """
     Iterate over the MSMarco passages dataset and create elasticsearch index.
@@ -76,16 +78,11 @@ def bulk_index(es: Elasticsearch) -> None:
             #put info in dictionary
             corpus[docid] = {"body": text}
                      
-# =============================================================================
-#             #remove this if statement after development to index the whole thing
-#             if count ==1000: 
-#                 break
-# =============================================================================
-
     # Loop through dictionary, pass to es to create index
     for doc_id, text in corpus.items(): 
         es.index(document = text, id = doc_id, index=INDEX_NAME)
         
+#%% BASELINE RETRIEVAL
 
 def baseline_retrieval(
     es: Elasticsearch, index_name: str , query: str, k: int = 1000) -> List[str]:
@@ -111,14 +108,11 @@ def baseline_retrieval(
     """
 
     res = es.search(index = INDEX_NAME, q = query, _source = False, size = k)
-    result_list = []
-    
-    for hit in res["hits"]["hits"]:
-            result_list.append(hit["_id"])
+    result_list = [hit["_id"] for hit in res["hits"]["hits"]]
     
     return result_list
 
-
+#%% LOAD DATA
 def get_queries(): 
     """
     Compile dictionary of query ids and query text from the available query documents.
@@ -164,16 +158,11 @@ def get_relevance_scores():
                 rel_scores[qid][pid] = math.floor(int(rel)/2)
             except: 
                 rel_scores[qid] = {pid:math.floor(int(rel)/2)}
-                
-# =============================================================================
-#             if count ==3: 
-#                 break
-# =============================================================================
-       
+                       
     return rel_scores
 
 
-##### METRICS #####
+#%% COMPUTE METRICS
 
 def dcg(relevances: List[int], k: int) -> float:
     """Computes DCG@k, given the corresponding relevance levels for a ranked list of documents.
@@ -269,17 +258,18 @@ def get_recall(system_ranking: List[str], ground_truth: Set[str], k: int = 1000
     -------
         R@k (float)
     """
-    if k > len(system_ranking):
-        k = len(system_ranking)
         
     # list checking if doc relevant
     correct_retrieved = [1 if doc in ground_truth else 0 for doc in system_ranking ]      
     
     # look at first k only
+    if k > len(system_ranking): 
+        k = len(system_ranking)
     first_k = correct_retrieved[:k]
     
-    # Recall at k (#correct retreived in the first k documens / # that should have been retrieved)
-    Rk = sum(first_k)/k
+    # Recall at k (#relevant retrieved / # relevant docs)
+
+    Rk = sum(first_k)/len(ground_truth)
     
     return Rk
     
@@ -313,6 +303,7 @@ def get_reciprocal_rank(
     
     return RR
 
+#%% PERFORM EVALUATION 
 
 def perform_evaluation(es: Elasticsearch, index_name: str, rel_scores, queries): 
     """
@@ -369,16 +360,19 @@ def perform_evaluation(es: Elasticsearch, index_name: str, rel_scores, queries):
         metrics["R1000"].append(R1000)
     
     # compute averages for all the metrics
-    average_metrics = {"RR": sum(metrics["RR"])/len(metrics["RR"]),
-                       "NDCG10": sum(metrics["NDCG10"])/len(metrics["NDCG10"]),
-                       "AP": sum(metrics["AP"])/len(metrics["AP"]),
-                       "R1000":sum(metrics["R1000"])/len(metrics["R1000"]) }
+    average_metrics = {"RR": round(sum(metrics["RR"])/len(metrics["RR"]),4),
+                       "NDCG@10": round(sum(metrics["NDCG10"])/len(metrics["NDCG10"]),4),
+                       "AP": round(sum(metrics["AP"])/len(metrics["AP"]),4),
+                       "R@1000": round(sum(metrics["R1000"])/len(metrics["R1000"]),4)
+                       }
     
-    return average_metrics
+    print("Performance of Elasticsearch BM25 retrieval:")
+    pprint(average_metrics)
+    
+    return 
     
     
-###############################################################################
-
+#%% MAIN
 
 def main():
     #create Elasticsearch object and perform indexing
@@ -400,11 +394,8 @@ def main():
     rel_scores = get_relevance_scores()
     
     # perform baseline evaluation
-    average_metrics = perform_evaluation(es, INDEX_NAME, rel_scores, queries)
+    perform_evaluation(es, INDEX_NAME, rel_scores, queries)
     
-    print("Performace of Elasticsearch BM25 retrieval:")
-    pprint(average_metrics)
-
 
 if __name__ == "__main__":
     main()
