@@ -32,4 +32,6 @@ def baseline_retrieval(
     return result_list
 
 def advanced_method():
+    # I suggest using the model from below:
+    # https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2?text=I+like+you.+I+love+you
     assert NotImplementedError("a function for the advanced re-ranking method is not implemented yet")

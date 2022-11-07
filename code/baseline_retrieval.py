@@ -52,9 +52,14 @@ RELEVANCE_SCORES = "../data/2019qrels-pass.txt"
 
 #%% INDEXING
 
-def bulk_index(es: Elasticsearch) -> None:
+def bulk_index(es: Elasticsearch, data_file=DATA_FILE, 
+    index=INDEX_NAME, index_settings=INDEX_SETTINGS, cutoff=np.inf) -> None:
     """
     Iterate over the MSMarco passages dataset and create elasticsearch index.
+
+     Args:
+        cutoff: number of items to index before stopping. Indexes all items by 
+        default.
 
     Returns
     -------
@@ -63,25 +68,30 @@ def bulk_index(es: Elasticsearch) -> None:
     """
     
     # if the index exists, delete it
-    if es.indices.exists(INDEX_NAME):    
-        es.indices.delete(index = INDEX_NAME)
+    if es.indices.exists(index=index):    
+        es.indices.delete(index=index)
         
     # create the index
-    es.indices.create(index = INDEX_NAME, body = INDEX_SETTINGS)
+    es.indices.create(index=index, body=index_settings)
     
     # create dictionary of passages. keys: doc_id, value: passsage text
     corpus = {}
 
-    with open(DATA_FILE) as file:
+    i = 0
+    with open(data_file) as file:
         tsv_file = csv.reader(file, delimiter="\t")
         for count, line in enumerate(tsv_file):
+
+            if count > cutoff:
+                break
+
             docid, text = line
             #put info in dictionary
             corpus[docid] = {"body": text}
                      
     # Loop through dictionary, pass to es to create index
     for doc_id, text in corpus.items(): 
-        es.index(document = text, id = doc_id, index=INDEX_NAME)
+        es.index(document=text, id=doc_id, index=index)
         
 
 #%% LOAD DATA
@@ -177,7 +187,6 @@ def ndcg(system_ranking: List[int], ground_truth: List[int], k:int = 10) -> floa
     relevances_ideal = sorted(ground_truth.values(), reverse=True)
     
     return dcg(relevances, k) / dcg(relevances_ideal, k)  
-
 
 def get_average_precision(
     system_ranking: List[str], ground_truth: Set[str],k : int = 1000) -> float:
