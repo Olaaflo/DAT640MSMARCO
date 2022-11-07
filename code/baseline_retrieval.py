@@ -16,6 +16,7 @@ Code for :
 from typing import Any, Dict, List, Union, Callable, Set
 from elasticsearch import Elasticsearch
 from pprint import pprint
+from retrievals import baseline_retrieval
 import csv
 import numpy as np
 import math
@@ -82,35 +83,6 @@ def bulk_index(es: Elasticsearch) -> None:
     for doc_id, text in corpus.items(): 
         es.index(document = text, id = doc_id, index=INDEX_NAME)
         
-#%% BASELINE RETRIEVAL
-
-def baseline_retrieval(
-    es: Elasticsearch, index_name: str , query: str, k: int = 1000) -> List[str]:
-    """Performs baseline retrival on index.
-    
-    Function takes a query in the form of a string with space-separated terms, 
-    and first building an Elasticsearch query from these, 
-    and then retrieving the highest-ranked 
-    entities based on that query from the index, and finally returning 
-    the names of the top k candidates as a list in descending order according 
-    to the score awarded by Elasticsearch's internal BM25 implementation.
-
-    Args:
-        es: Elasticsearch instance.
-        index_name: A string of text.
-        query: A string of text, space separated terms.
-        k: An integer.
-
-    Returns:
-        A list of entity IDs as strings, up to k of them, in descending order of
-            scores.
-    
-    """
-
-    res = es.search(index = INDEX_NAME, q = query, _source = False, size = k)
-    result_list = [hit["_id"] for hit in res["hits"]["hits"]]
-    
-    return result_list
 
 #%% LOAD DATA
 def get_queries(): 
@@ -342,7 +314,6 @@ def perform_evaluation(es: Elasticsearch, index_name: str, rel_scores, queries):
         # get ground truth documents - collect only pids that have positve rel.
         ground_truth = set([k for k,v in scores.items() if v > 0])
     
-        
         # calculate RR, append to metrics
         RR = get_reciprocal_rank(system_ranking, ground_truth)
         metrics["RR"].append(RR)

@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Nov  4 11:36:00 2022
+Created on Mon Nov  7 12:32:00 2022
 
-@author: hannahhaland
-
-Perform evaluation using trec eval
+Perform evaluation on advanced_method using trec eval
 
 """
 from trectools import TrecQrel, TrecRun, TrecEval
 from pprint import pprint
 from typing import Any, Dict, List, Union, Callable, Set
 from elasticsearch import Elasticsearch
+from retrievals import baseline_retrieval, advanced_method
 import csv
 import math
 import string
@@ -29,7 +28,7 @@ QUERY_FILES = [QUERIES_DEV, QUERIES_TRAIN, QUERIES_EVAL]
 RELEVANCE_SCORES = "../data/2019qrels-pass.txt"
 
 # OUTPUT FILE NAMES (for use by trec_eval)
-BASELINE_RESULTS = "baseline_results"
+ADVANCED_METHOD_RESULTS = "advanced_method_results"
 QRELS_BINARY = "qrels_binary"
 
 #%% LOAD DATA
@@ -95,7 +94,6 @@ def get_relevance_scores():
     
     return rel_scores
 
-        
 
 #%% BASELINE RANKING 
 
@@ -140,13 +138,19 @@ def perform_ranking(es: Elasticsearch, index_name: str,  rel_scores, queries):
         # Replace punctuation marks with single space
         for char in string.punctuation: 
             query_text = query_text.replace(char, " ")
-    
-        res = es.search(index = INDEX_NAME, q = query_text, _source = False, size = 1000)["hits"]["hits"]
 
-        result_list.append([[qid, "Q0", hit["_id"], count+1, hit["_score"], "baseline"] for (count, hit) in enumerate(res)])
+        
+        baseline = baseline_retrieval(es, INDEX_NAME, query=query_text, k=1000)
+        # Reranking
+        res = advanced_method(es, INDEX_NAME, query=query_text, baseline=baseline)
+
+        result_list.append(
+            [[qid, "Q0", hit["_id"], count+1, hit["_score"], "baseline"] 
+             for (count, hit) in enumerate(res)]
+        )
 
     # write result to file
-    output_file = BASELINE_RESULTS
+    output_file = ADVANCED_METHOD_RESULTS
     with open(output_file, 'w') as csvfile: 
         csvwriter = csv.writer(csvfile, delimiter = "\t",  quotechar='"',) 
         for i in range(len(result_list)): 
@@ -154,11 +158,11 @@ def perform_ranking(es: Elasticsearch, index_name: str,  rel_scores, queries):
     
     return result_list
     
-def get_metrics(results_file = BASELINE_RESULTS, rels_file = QRELS_BINARY):
+def get_metrics(results_file = ADVANCED_METHOD_RESULTS, rels_file = QRELS_BINARY):
     """
     use trec eval to compute metrics
     Args: 
-        results_file: baseline retrieval results  BASELINE_RESULTS
+        results_file: baseline retrieval results  ADVANCED_METHOD_RESULTS
         rels_file: binary relevance file QRELS_BINARY
 
     """
@@ -227,7 +231,7 @@ rel_scores = get_relevance_scores()
 result_list = perform_ranking(es, INDEX_NAME, rel_scores, queries)
 
 #metrics dictionary
-metrics_dic = get_metrics(BASELINE_RESULTS, QRELS_BINARY)
+metrics_dic = get_metrics(ADVANCED_METHOD_RESULTS, QRELS_BINARY)
 
 # Summarize relevant metrics and print to screen
 summarize_metrics(metrics_dic)
