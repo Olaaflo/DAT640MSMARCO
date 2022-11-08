@@ -142,6 +142,7 @@ def perform_ranking(es: Elasticsearch, index_name: str,  rel_scores, queries):
         
         baseline = baseline_retrieval(es, INDEX_NAME, query=query_text, k=1000)
         # Reranking
+        # TODO: implement advanced method
         res = advanced_method(es, INDEX_NAME, query=query_text, baseline=baseline)
 
         result_list.append(
