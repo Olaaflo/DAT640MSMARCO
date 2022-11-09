@@ -6,6 +6,8 @@ Created on Mon Nov  7 12:32:00 2022
 Perform evaluation on advanced_method using trec eval
 
 """
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
 from trectools import TrecQrel, TrecRun, TrecEval
 from pprint import pprint
 from typing import Any, Dict, List, Union, Callable, Set
@@ -139,11 +141,13 @@ def perform_ranking(es: Elasticsearch, index_name: str,  rel_scores, queries):
         for char in string.punctuation: 
             query_text = query_text.replace(char, " ")
 
+        model = AutoModelForSequenceClassification.from_pretrained('cross-encoder/ms-marco-MiniLM-L-6-v2')
+        tokenizer = AutoTokenizer.from_pretrained('cross-encoder/ms-marco-MiniLM-L-6-v2')
         
-        baseline = baseline_retrieval(es, INDEX_NAME, query=query_text, k=1000)
+        baseline_ranking = baseline_retrieval(es, INDEX_NAME, query=query_text, k=1000)
         # Reranking
-        # TODO: implement advanced method
-        res = advanced_method(es, INDEX_NAME, query=query_text, baseline=baseline)
+        res = advanced_method(es, INDEX_NAME, query=query_text, baseline=baseline_ranking, 
+                              model=model, tokenizer=tokenizer)
 
         result_list.append(
             [[qid, "Q0", hit["_id"], count+1, hit["_score"], "baseline"] 

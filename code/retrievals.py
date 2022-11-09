@@ -1,5 +1,7 @@
 from typing import List
 from elasticsearch import Elasticsearch
+import numpy as np
+import torch
 
 #%% BASELINE RETRIEVAL
 
@@ -31,7 +33,15 @@ def baseline_retrieval(
     
     return result_list
 
-def advanced_method():
-    # I suggest using the model from below:
-    # https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2?text=I+like+you.+I+love+you
-    assert NotImplementedError("a function for the advanced re-ranking method is not implemented yet")
+
+def advanced_method(es, index_name: str, baseline: List[str], query: str, model, tokenizer):
+    docs = [es.get(index=index_name, id=_id)['_source']['body'] for _id in baseline]
+
+    features = tokenizer([query] * len(baseline), docs,  padding=True, truncation=True, return_tensors="pt")
+
+    model.eval()
+    with torch.no_grad():
+        scores = model(**features).logits
+        sorted_indexes = list(reversed(np.argsort(list(scores))))
+    
+    return [baseline[i] for i in sorted_indexes]
