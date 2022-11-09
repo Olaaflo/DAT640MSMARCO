@@ -16,7 +16,7 @@ Code for :
 from typing import Any, Dict, List, Union, Callable, Set
 from elasticsearch import Elasticsearch
 from pprint import pprint
-from retrievals import baseline_retrieval
+from functions import baseline_retrieval
 import csv
 import numpy as np
 import math
@@ -26,13 +26,13 @@ INDEX_NAME = "msmarcopassages"
 
 INDEX_SETTINGS = {
     "mappings": {
-    "properties": {
-        "body": {
-            "type": "text",
-            "term_vector": "with_positions",
-            "analyzer": "english",
-        },
-    }
+        "properties": {
+            "body": {
+                "type": "text",
+                "term_vector": "with_positions",
+                "analyzer": "english",
+            },
+        }
     }
 }
 
