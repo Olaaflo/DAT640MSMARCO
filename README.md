@@ -1,12 +1,35 @@
-# IAI Project Template
+# MS Marco Passage Retrieval - Team - 008 
+Project in DAT640 at the University of Stavanger(UIS).  
 
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+A full ranking retrieval system is implemented based on first pass
+retrieval followed by a re-ranking step. BM25 is used for the first
+stage of the retrieval process. Re-ranking is performed using a cross-
+encoder neural network called miniLM-L12-v2.  
 
-This repository serves as a template for software projects.
+#### Table of Contents:  
+- [Tech/Framework Used](#tech)  
+- [Short Description](#short-desc)  
+- [User Guide](#usr-guide)  
 
-# Testing and GitHub actions
+<a name="tech"></a>
+## Tech/Framework Used
+- [Elasticsearch](https://elasticsearch-py.readthedocs.io/en/v8.5.0/)
+- [Hugging Face](https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-12-v2?text=I+like+you.+I+love+you)
 
-Using `pre-commit` hooks, `flake8`, `black` and `pytest` are locally run on every commit. For more details on how to use `pre-commit` hooks see [here](https://github.com/iai-group/guidelines/tree/main/python#install-pre-commit-hooks).
+<a name="short-desc"></a>
+Script  | Description
+------------- | ------------- 
+[advanced_method_eval.py]()  | Code for the advanced method.  
+[baseline_eval.py]()  | code for baseline evaluation.  
+[functions.py]()  | Collection of different functions.  
 
-Similarly, Github actions are used to run `flake8`, `black` and `pytest` on every push and pull request. The `pytest` results are sent to [CodeCov](https://about.codecov.io/) using their API for to get test coverage analysis. Details on Github actions are [here](https://github.com/iai-group/guidelines/blob/main/github/Actions.md).
+<a name="usr-guide"></a>
+## User Guide:
+### 1. Install all packages from requirements.txt  
+    `pip install -r requirements.txt`  
 
+### 2. Running the Code 
+
+
+## Information 
+...
