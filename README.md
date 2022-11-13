@@ -7,14 +7,14 @@ stage of the retrieval process. Re-ranking is performed using a cross-
 encoder neural network called miniLM-L12-v2.  
 
 #### Table of Contents:  
-- [Tech/Framework Used](#tech)  
-- [Short Description](#short-desc)  
-- [User Guide](#usr-guide)  
+- [Tech/Framework Used](#tech)
+- [Short Description](#short-desc)
+- [User Guide](#usr-guide)
 
 <a name="tech"></a>
 ## Tech/Framework Used
 - [Elasticsearch](https://elasticsearch-py.readthedocs.io/en/v8.5.0/)
-- [Hugging Face - miniLM-L12-v2](https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2?text=I+like+you.+I+love+you)
+- [Hugging Face - miniLM-L6-v2](https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2?text=I+like+you.+I+love+you)
 
 <a name="short-desc"></a>
 ## Short Description
