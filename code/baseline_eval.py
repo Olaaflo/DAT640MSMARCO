@@ -84,7 +84,7 @@ def perform_ranking(es: Elasticsearch, index_name: str,  rel_scores, queries, re
 
     # write result to file
     output_file = results_file
-    with open(output_file, 'w') as csvfile: 
+    with open(output_file, "w") as csvfile: 
         csvwriter = csv.writer(csvfile, delimiter = "\t",  quotechar='"',) 
         for i in range(len(result_list)): 
             csvwriter.writerows(result_list[i])
@@ -110,7 +110,7 @@ def main():
     # Summarize relevant metrics and print to screen
     summarize_metrics(metrics_dic)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 
 

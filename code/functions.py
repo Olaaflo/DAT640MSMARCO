@@ -38,6 +38,63 @@ RELEVANCE_SCORES = str(Path(r"../data/2019qrels-pass.txt"))
 ADVANCED_METHOD_RESULTS = "advanced_method_results"
 QRELS_BINARY = "qrels_binary"
 
+def baseline_retrieval(
+    es: Elasticsearch, index_name: str , query: str, k: int = 1000) -> List[str]:
+    """Performs baseline retrival on index.
+    
+    Function takes a query in the form of a string with space-separated terms, 
+    and first building an Elasticsearch query from these, 
+    and then retrieving the highest-ranked 
+    entities based on that query from the index, and finally returning 
+    the names of the top k candidates as a list in descending order according 
+    to the score awarded by Elasticsearch's internal BM25 implementation.
+
+    Args:
+        es: Elasticsearch instance.
+        index_name: A string of text.
+        query: A string of text, space separated terms.
+        k: An integer.
+
+    Returns:
+        A list of entity IDs as strings, up to k of them, in descending order of
+            scores.
+    
+    """
+
+    res = es.search(index=index_name, q=query, _source=False, size=k)
+    
+    result_list = [hit["_id"] for hit in res["hits"]["hits"]]
+    return result_list
+
+def re_ranker(es, index_name: str, baseline: List[str], query: str, model, tokenizer):
+    """Performs re-ranking of the baseline results
+
+    Function takes a list of ranked passages, and reranks them with a 
+    re-ranking model after tokinizing the text with the tokenizer given
+    as input.
+
+    Args:
+        es: Elasticsearch instance.
+        index_name: A string of text.
+        baseline: List of passage-ids already ranked
+        query: A string of text, space separated terms.
+        model: A pretrained model used for re-ranking, uses query and passage 
+            as input
+        tokenizer: A pretrained tokenizer used on input to the model
+        
+    """
+    docs = [es.get(index=index_name, id=_id)["_source"]["body"] for _id in baseline]
+
+    features = tokenizer([query] * len(baseline), docs,  padding=True, truncation=True, return_tensors="pt")
+
+    model.eval()
+    with torch.no_grad():
+        scores = model(**features).logits
+        scores = [t.item() for t in scores]
+        sorted_indexes = list(reversed(np.argsort(list(scores))))
+
+    return [{"_id" : baseline[i], "_score" : scores[i]} for i in sorted_indexes]
+
 
 def bulk_index(
     es: Elasticsearch, data_file=DATA_FILE, index=INDEX_NAME, 
@@ -61,11 +118,11 @@ def bulk_index(
         if reindex_if_exist:    
             es.indices.delete(index=index)
         else:
-            print('''
+            print("""
             index already exists, aborting...
             Change reindex_if_exist to False 
             if you still want to delete the current index, 
-            and reindex the whole thing''')
+            and reindex the whole thing""")
             return
         
     # create the index
@@ -84,8 +141,8 @@ def bulk_index(
                 break
             
             docid, text = line
-            bulk_data.append({'index': {'_index': index, '_id': docid}})
-            bulk_data.append({'body': text})
+            bulk_data.append({"index": {"_index": index, "_id": docid}})
+            bulk_data.append({"body": text})
             batch += 1
 
             if batch >= batch_size:
@@ -93,13 +150,12 @@ def bulk_index(
                 num_indexed += batch
                 batch = 0
                 bulk_data = []
-                print(f'Indexed {num_indexed} passages')
+                print(f"Indexed {num_indexed} passages")
 
         # Bulk remaining (if remaining)
         if len(bulk_data) > 0:
             es.bulk(index=index, body=bulk_data, refresh=True)
-            print(f'Indexed {num_indexed + batch} passages')
-
+            print(f"Indexed {num_indexed + batch} passages")
 
 def one_by_one_index(es: Elasticsearch, data_file=DATA_FILE, 
     index=INDEX_NAME, index_settings=INDEX_SETTINGS, cutoff=np.inf) -> None:
@@ -140,50 +196,6 @@ def one_by_one_index(es: Elasticsearch, data_file=DATA_FILE,
     # Loop through dictionary, pass to es to create index
     for doc_id, text in corpus.items(): 
         es.index(document=text, id=doc_id, index=index)
-
-
-def baseline_retrieval(
-    es: Elasticsearch, index_name: str , query: str, k: int = 1000) -> List[str]:
-    """Performs baseline retrival on index.
-    
-    Function takes a query in the form of a string with space-separated terms, 
-    and first building an Elasticsearch query from these, 
-    and then retrieving the highest-ranked 
-    entities based on that query from the index, and finally returning 
-    the names of the top k candidates as a list in descending order according 
-    to the score awarded by Elasticsearch's internal BM25 implementation.
-
-    Args:
-        es: Elasticsearch instance.
-        index_name: A string of text.
-        query: A string of text, space separated terms.
-        k: An integer.
-
-    Returns:
-        A list of entity IDs as strings, up to k of them, in descending order of
-            scores.
-    
-    """
-
-    res = es.search(index=index_name, q=query, _source=False, size=k)
-    
-    result_list = [hit["_id"] for hit in res["hits"]["hits"]]
-    return result_list
-
-
-def advanced_method(es, index_name: str, baseline: List[str], query: str, model, tokenizer):
-    docs = [es.get(index=index_name, id=_id)['_source']['body'] for _id in baseline]
-
-    features = tokenizer([query] * len(baseline), docs,  padding=True, truncation=True, return_tensors="pt")
-
-    model.eval()
-    with torch.no_grad():
-        scores = model(**features).logits
-        scores = [t.item() for t in scores]
-        sorted_indexes = list(reversed(np.argsort(list(scores))))
-
-    return [{'_id' : baseline[i], '_score' : scores[i]} for i in sorted_indexes]
-
 
 def get_metrics(results_file=ADVANCED_METHOD_RESULTS, rels_file = QRELS_BINARY):
     """
@@ -298,7 +310,7 @@ def get_relevance_scores(
     
     # create the new qrels file for trec_eval
     output_file = qrels_binary
-    with open(output_file, 'w') as csvfile: 
+    with open(output_file, "w") as csvfile: 
         csvwriter = csv.writer(csvfile, delimiter = "\t",  quotechar='"',) 
         csvwriter.writerows(rel_list)
     

@@ -5,7 +5,7 @@ import time
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from elasticsearch import Elasticsearch
 from functions import (
-        baseline_retrieval, advanced_method, bulk_index, 
+        baseline_retrieval, re_ranker, bulk_index, 
         get_queries, get_relevance_scores, summarize_metrics, get_metrics
 )
 
@@ -69,14 +69,14 @@ def perform_ranking(es: Elasticsearch, index_name: str,  rel_scores, queries, k=
         for char in string.punctuation: 
             query_text = query_text.replace(char, " ")
 
-        model = AutoModelForSequenceClassification.from_pretrained('cross-encoder/ms-marco-MiniLM-L-6-v2')
-        tokenizer = AutoTokenizer.from_pretrained('cross-encoder/ms-marco-MiniLM-L-6-v2')
+        model = AutoModelForSequenceClassification.from_pretrained("cross-encoder/ms-marco-MiniLM-L-6-v2")
+        tokenizer = AutoTokenizer.from_pretrained("cross-encoder/ms-marco-MiniLM-L-6-v2")
         
         baseline_ranking = baseline_retrieval(es, index_name, query=query_text, k=k)
         
         # Reranking
         if len(baseline_ranking) > 0:
-            res = advanced_method(es, index_name, query=query_text, baseline=baseline_ranking, 
+            res = re_ranker(es, index_name, query=query_text, baseline=baseline_ranking, 
                                 model=model, tokenizer=tokenizer)
             result_list.append(
                 [[qid, "Q0", hit["_id"], count+1, hit["_score"], "baseline"] 
@@ -85,7 +85,7 @@ def perform_ranking(es: Elasticsearch, index_name: str,  rel_scores, queries, k=
 
     # write result to file
     output_file = results_file
-    with open(output_file, 'w') as csvfile: 
+    with open(output_file, "w") as csvfile: 
         csvwriter = csv.writer(csvfile, delimiter = "\t",  quotechar='"',) 
         for i in range(len(result_list)): 
             csvwriter.writerows(result_list[i])
@@ -98,26 +98,26 @@ def main():
     es = Elasticsearch()    
     print(es.info())
 
-    print('Indexing ...')
+    print("Indexing ...")
     # TODO: change rieindex_if_exist to 
     # False when indexing is completed the first time
     bulk_index(es, index=INDEX_NAME, reindex_if_exist=False, batch_size=100_000)
-    print('Finished indexing')
+    print("Finished indexing")
 
     # get queries
-    print('Fetching queries ...')
+    print("Fetching queries ...")
     queries = get_queries(QUERY_FILES)
-    print('Finished fetching queries')
+    print("Finished fetching queries")
     
     # get relevance scores
-    print('Fetching rel-scores ...')
+    print("Fetching rel-scores ...")
     rel_scores = get_relevance_scores(RELEVANCE_SCORES)
-    print('Finished fetching rel-scores')
+    print("Finished fetching rel-scores")
 
     # baseline retrieval
-    print('Performing ranking ...')
+    print("Performing ranking ...")
     result_list = perform_ranking(es, INDEX_NAME, rel_scores, queries)
-    print('Finished getting rankings')
+    print("Finished getting rankings")
 
     #metrics dictionary
     metrics_dic = get_metrics(ADVANCED_METHOD_RESULTS, QRELS_BINARY)
@@ -126,7 +126,7 @@ def main():
     summarize_metrics(metrics_dic)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
 
 
