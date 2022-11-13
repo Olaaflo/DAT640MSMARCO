@@ -17,6 +17,7 @@ encoder neural network called miniLM-L12-v2.
 - [Hugging Face - miniLM-L12-v2](https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-12-v2?text=I+like+you.+I+love+you)
 
 <a name="short-desc"></a>
+## Short Description
 Script  | Description
 ------------- | ------------- 
 [advanced_method_eval.py]()  | Code for the advanced method.  
