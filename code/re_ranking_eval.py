@@ -27,7 +27,8 @@ QRELS_BINARY = "qrels_binary"
 
 
 
-def perform_ranking(es: Elasticsearch, index_name: str,  rel_scores, queries, k=1000, results_file=ADVANCED_METHOD_RESULTS): 
+def perform_ranking(es: Elasticsearch, index_name: str,  rel_scores, queries, 
+                                k=1000, results_file=ADVANCED_METHOD_RESULTS): 
     """
     Iterate through qid-pid-rel tuples (in rel_scores dictionary).
     Perform baseline retrieval on query text.
@@ -64,26 +65,34 @@ def perform_ranking(es: Elasticsearch, index_name: str,  rel_scores, queries, k=
     for qid in rel_scores.keys():
         query_text = queries[qid]
         
-        # process query text (Elastic search does not function well with escape characters)
+        # Process query text 
+        # (Elastic search does not function well with escape characters)
         # Replace punctuation marks with single space
         for char in string.punctuation: 
             query_text = query_text.replace(char, " ")
 
-        model = AutoModelForSequenceClassification.from_pretrained("cross-encoder/ms-marco-MiniLM-L-6-v2")
-        tokenizer = AutoTokenizer.from_pretrained("cross-encoder/ms-marco-MiniLM-L-6-v2")
+        model = AutoModelForSequenceClassification.from_pretrained(
+            "cross-encoder/ms-marco-MiniLM-L-6-v2"
+        )
+        tokenizer = AutoTokenizer.from_pretrained(
+            "cross-encoder/ms-marco-MiniLM-L-6-v2"
+        )
         
-        baseline_ranking = baseline_retrieval(es, index_name, query=query_text, k=k)
+        baseline_ranking = baseline_retrieval(
+            es, index_name, query=query_text, k=k
+        )
         
         # Reranking
         if len(baseline_ranking) > 0:
-            res = re_ranker(es, index_name, query=query_text, baseline=baseline_ranking, 
+            res = re_ranker(
+                es, index_name, query=query_text, baseline=baseline_ranking, 
                                 model=model, tokenizer=tokenizer)
             result_list.append(
                 [[qid, "Q0", hit["_id"], count+1, hit["_score"], "baseline"] 
                 for (count, hit) in enumerate(res)]
             )
 
-    # write result to file
+    # Write result to file
     output_file = results_file
     with open(output_file, "w") as csvfile: 
         csvwriter = csv.writer(csvfile, delimiter = "\t",  quotechar='"',) 
@@ -92,34 +101,31 @@ def perform_ranking(es: Elasticsearch, index_name: str,  rel_scores, queries, k=
     
     return result_list
     
-
 def main():
-    # es = Elasticsearch(request_timeout=30, max_retries=10, retry_on_timeout=True)    
     es = Elasticsearch()    
     print(es.info())
 
     print("Indexing ...")
-    # TODO: change rieindex_if_exist to 
-    # False when indexing is completed the first time
     bulk_index(es, index=INDEX_NAME, reindex_if_exist=False, batch_size=100_000)
     print("Finished indexing")
 
-    # get queries
+    # Get queries
     print("Fetching queries ...")
     queries = get_queries(QUERY_FILES)
     print("Finished fetching queries")
     
-    # get relevance scores
+    # Get relevance scores
     print("Fetching rel-scores ...")
     rel_scores = get_relevance_scores(RELEVANCE_SCORES)
     print("Finished fetching rel-scores")
 
-    # baseline retrieval
+    # Baseline retrieval
     print("Performing ranking ...")
-    result_list = perform_ranking(es, INDEX_NAME, rel_scores, queries)
+    result_list = perform_ranking(es, INDEX_NAME, rel_scores, queries, 
+                                  results_file=ADVANCED_METHOD_RESULTS)
     print("Finished getting rankings")
 
-    #metrics dictionary
+    # Metrics dictionary
     metrics_dic = get_metrics(ADVANCED_METHOD_RESULTS, QRELS_BINARY)
 
     # Summarize relevant metrics and print to screen

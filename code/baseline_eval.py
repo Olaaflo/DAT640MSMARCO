@@ -14,11 +14,12 @@ from pprint import pprint
 from typing import Any, Dict, List, Union, Callable, Set
 from elasticsearch import Elasticsearch
 import csv
-import math
 import string
-import numpy as np
 
-from functions import get_metrics, get_queries, get_relevance_scores, summarize_metrics
+from functions import (
+    get_metrics, get_queries, 
+    get_relevance_scores, summarize_metrics, bulk_index
+    )
 
 INDEX_NAME = "msmarcopassages"
 
@@ -36,7 +37,8 @@ ADVANCED_METHOD_RESULTS = "advanced_method_results"
 BASELINE_RESULTS = "baseline_results"
 QRELS_BINARY = "qrels_binary"
 
-def perform_ranking(es: Elasticsearch, index_name: str,  rel_scores, queries, results_file=BASELINE_RESULTS): 
+def perform_ranking(es: Elasticsearch, index_name: str,  rel_scores, 
+                                       queries, results_file=BASELINE_RESULTS): 
     """
     Iterate through qid-pid-rel tuples (in rel_scores dictionary).
     Perform baseline retrieval on query text.
@@ -73,7 +75,8 @@ def perform_ranking(es: Elasticsearch, index_name: str,  rel_scores, queries, re
     for qid in rel_scores.keys():
         query_text = queries[qid]
         
-        # process query text (Elastic search does not function well with escape characters)
+        # Process query text 
+        # (Elastic search does not function well with escape characters)
         # Replace punctuation marks with single space
         for char in string.punctuation: 
             query_text = query_text.replace(char, " ")
@@ -91,21 +94,32 @@ def perform_ranking(es: Elasticsearch, index_name: str,  rel_scores, queries, re
     
     return result_list
 
+
 def main():
     es = Elasticsearch()    
-    es.info()  
+    print(es.info())
 
-    # get queries
+    print("Indexing ...")
+    bulk_index(es, index=INDEX_NAME, reindex_if_exist=False, batch_size=100_000)
+    print("Finished indexing")
+
+    # Get queries
+    print("Fetching queries ...")
     queries = get_queries(QUERY_FILES)
+    print("Finished fetching queries")
     
-    # get relevance scores
+    # Get relevance scores
+    print("Fetching rel-scores ...")
     rel_scores = get_relevance_scores(RELEVANCE_SCORES, QRELS_BINARY)
+    print("Finished fetching rel-scores")
 
-    # baseline retrieval
+    # Baseline retrieval
+    print("Performing ranking ...")
     result_list = perform_ranking(es, INDEX_NAME, rel_scores, queries, results_file=BASELINE_RESULTS)
+    print("Finished getting rankings")
 
-    #metrics dictionary
-    metrics_dic = get_metrics(results_file=BASELINE_RESULTS)
+    # Metrics dictionary
+    metrics_dic = get_metrics(BASELINE_RESULTS, QRELS_BINARY)
 
     # Summarize relevant metrics and print to screen
     summarize_metrics(metrics_dic)

@@ -4,7 +4,7 @@ Project in DAT640 at the University of Stavanger(UIS).
 A full ranking retrieval system is implemented based on first pass
 retrieval followed by a re-ranking step. BM25 is used for the first
 stage of the retrieval process. Re-ranking is performed using a cross-
-encoder neural network called miniLM-L12-v2.  
+encoder neural network called miniLM-L6-v2.  
 
 #### Table of Contents:  
 - [Tech/Framework Used](#tech)
@@ -20,17 +20,15 @@ encoder neural network called miniLM-L12-v2.
 ## Short Description
 Script  | Description
 ------------- | ------------- 
-[advanced_method_eval.py]()  | Code for the advanced method.  
-[baseline_eval.py]()  | code for baseline evaluation.  
-[functions.py]()  | Collection of different functions.  
+[functions.py]()  | Collection of different functions including the baseline and re_ranking methods.  
+[baseline_eval.py]()  | Code responsible for running the whole pipeline from indexing to predicting baseline results, writes results to the **baseline_results** file.  
+[re_ranking_eval.py]()  | Code responsible for running the whole pipeline from indexing, baseline prediciton and re-ranking of the baseline. Writes results to the **advanced_method** file.
 
 <a name="usr-guide"></a>
 ## User Guide:
 ### 1. Install all packages from requirements.txt  
     `pip install -r requirements.txt`  
-
-### 2. Running the Code 
-
+    
 
 ## Information 
-...
+TODO: Maybe write something about trec and MSMARCO
