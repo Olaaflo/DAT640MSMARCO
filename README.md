@@ -14,7 +14,7 @@ encoder neural network called miniLM-L12-v2.
 <a name="tech"></a>
 ## Tech/Framework Used
 - [Elasticsearch](https://elasticsearch-py.readthedocs.io/en/v8.5.0/)
-- [Hugging Face - miniLM-L12-v2](https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-12-v2?text=I+like+you.+I+love+you)
+- [Hugging Face - miniLM-L12-v2](https://huggingface.co/cross-encoder/ms-marco-MiniLM-L-6-v2?text=I+like+you.+I+love+you)
 
 <a name="short-desc"></a>
 ## Short Description

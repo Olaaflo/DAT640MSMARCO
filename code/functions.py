@@ -9,8 +9,6 @@ from trectools import TrecQrel, TrecRun, TrecEval
 from pathlib import Path
 
 INDEX_NAME = "msmarcopassages"
-# INDEX_NAME = "test_bulk"
-
 
 INDEX_SETTINGS = {
     "mappings": {
