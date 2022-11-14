@@ -23,13 +23,15 @@ Script  | Description
 [functions.py]()  | Collection of different functions including the baseline and re_ranking methods.  
 [baseline_eval.py]()  | Code responsible for running the whole pipeline from indexing to predicting baseline results, writes results to the **baseline_results** file.  
 [re_ranking_eval.py]()  | Code responsible for running the whole pipeline from indexing, baseline prediciton and re-ranking of the baseline. Writes results to the **advanced_method** file as well.
-[depricated/baseline_retrieval.py]() | Initial code for getting the baseline results with our own metric functions.
+[depricated/baseline_retrieval.py]() | Initial code with slow indexing (doc by doc) for getting the baseline results, and contain our own metric functions.
 
 <a name="usr-guide"></a>
 ## User Guide:
 ### 1. Install all packages from requirements.txt  
     `pip install -r requirements.txt`  
-    
+### 2. Running getting the results (from parent directory)
+    `python code/baseline_eval.py`
+    `python code/re_ranking_eval.py`
 
 ## Information 
 The dataset used in this project is the MS MARCO passage corpus:  
