@@ -120,7 +120,7 @@ def bulk_index(
         else:
             print("""
             index already exists, aborting...
-            Change reindex_if_exist to False 
+            Change reindex_if_exist to True 
             if you still want to delete the current index, 
             and reindex the whole thing""")
             return
