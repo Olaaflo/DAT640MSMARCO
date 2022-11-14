@@ -60,7 +60,6 @@ def perform_ranking(es: Elasticsearch, index_name: str,  rel_scores, queries,
     tag is the identifier for the system
     """
     
-
     result_list = []
     for qid in rel_scores.keys():
         query_text = queries[qid]
@@ -134,6 +133,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
