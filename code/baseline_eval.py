@@ -1,17 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Nov  4 11:36:00 2022
-
-@author: hannahhaland
-
-Perform evaluation using trec eval
-
-"""
 from pathlib import Path
-from trectools import TrecQrel, TrecRun, TrecEval
-from pprint import pprint
-from typing import Any, Dict, List, Union, Callable, Set
 from elasticsearch import Elasticsearch
 import csv
 import string

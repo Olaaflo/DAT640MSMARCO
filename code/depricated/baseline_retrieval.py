@@ -1,19 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Oct 25 10:53:16 2022
-
-@author: hannahhaland
-
-
-Code for :
-    indexing of MSMarco Passages
-    performing baseline retrieval using elasticsearch's BM25 alg
-    evaluating metrics (NDCG@10, AP, R@1000, RR)
-
-"""
-
-from typing import Any, Dict, List, Union, Callable, Set
+from typing import List, Set
 from elasticsearch import Elasticsearch
 from pprint import pprint
 from functions import baseline_retrieval

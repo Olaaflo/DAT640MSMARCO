@@ -1,7 +1,6 @@
 import csv
 import string
 from pathlib import Path
-import time
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from elasticsearch import Elasticsearch
 from functions import (
