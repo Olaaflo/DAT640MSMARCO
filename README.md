@@ -31,4 +31,5 @@ Script  | Description
     
 
 ## Information 
-TODO: Maybe write something about trec and MSMARCO
+The dataset used in this project is the MS MARCO passage corpus:  
+https://microsoft.github.io/msmarco/#ranking
