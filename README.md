@@ -37,8 +37,8 @@ Script  | Description
     
     
 ### 3. Running getting the results (from parent directory)
-    `python code/baseline_eval.py`
-    `python code/re_ranking_eval.py`
+    python code/baseline_eval.py
+    python code/re_ranking_eval.py
 
 ## Information 
 The dataset used in this project is the MS MARCO passage corpus:  
