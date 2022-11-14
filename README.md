@@ -28,8 +28,12 @@ Script  | Description
 <a name="usr-guide"></a>
 ## User Guide:
 ### 1. Install all packages from requirements.txt  
-    `pip install -r requirements.txt`  
-### 2. Running getting the results (from parent directory)
+    `pip install -r requirements.txt` 
+### 2. Download the required data
+    Go to `https://microsoft.github.io/msmarco/Datasets` and download
+    **collection.tar.gz** and **queries.tar.gz**
+    
+### 3. Running getting the results (from parent directory)
     `python code/baseline_eval.py`
     `python code/re_ranking_eval.py`
 
