@@ -31,7 +31,10 @@ Script  | Description
     `pip install -r requirements.txt` 
 ### 2. Download the required data
     Go to `https://microsoft.github.io/msmarco/Datasets` and download
-    **collection.tar.gz** and **queries.tar.gz**
+    **collection.tar.gz** and **queries.tar.gz** and unzip the files inside the data folder.
+    
+    Also go to https://trec.nist.gov/data/deep/2019qrels-pass.txt and install the qrels as a textfile called `2019qrels-pass.txt` inside the data folder.
+    
     
 ### 3. Running getting the results (from parent directory)
     `python code/baseline_eval.py`
